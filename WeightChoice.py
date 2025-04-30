@@ -29,7 +29,7 @@ def load_chain_config(file_path):
     except Exception as e:
         return {'error':str(e)}
 
-def GetConfig():
+def get_config():
     global ready
     with open('./config.txt','r',encoding='utf-8') as f:
         config = f.read()
@@ -37,13 +37,13 @@ def GetConfig():
     # print(config)
     return config
 
-def GetChain():
+def get_chain():
     global ready
     with open('./chain_config.txt','r',encoding='utf-8') as f:
         config = f.read()
         config = config.split('''\n''')
 
-def Choice(config,chosen_obj,chain_config,dev_options=default_dev_options):
+def choose(config,chosen_obj,chain_config,dev_options=default_dev_options):
     #ready抽签筒配置
     ready = []
     for i in config:
@@ -74,11 +74,11 @@ def Choice(config,chosen_obj,chain_config,dev_options=default_dev_options):
     else:
         next = None
     # print('next=',next)
-    print(chain_config)
+    # print(chain_config)
     return {'Tar':ready[rNum],'Next':next}
 
 if __name__ == '__main__':
-    config = GetConfig()
+    config = get_config()
     chain_config = load_chain_config('./chain_config.txt')
-    print(chain_config)
-    print(Choice(config=config,chosen_obj=[],chain_config=chain_config,dev_options={'manual_operate':1}))
+    # print(chain_config)
+    # print(Choice(config=config,chosen_obj=[],chain_config=chain_config,dev_options={'manual_operate':1}))
