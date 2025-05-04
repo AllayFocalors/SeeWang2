@@ -1,6 +1,6 @@
 # 希王点名2
-<img src="Assets/img/logo.png" width="100"/>
-<img src="Assets/img/studiologo.png" height="100"/><br>
+<img src="Assets/img/Logo.png" width="100"/>
+<img src="Assets/img/StudioLogo.png" height="100"/><br>
 
 ## 📘 简介
 希王点名2（SeeWang 2，简称CWANG）是一款功能强大且高度可定制的开源点名程序，专为教育场景设计。
