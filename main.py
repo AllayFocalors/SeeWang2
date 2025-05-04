@@ -1,18 +1,18 @@
-VERSION  = '2.4.6'
-s = f'========CWANG {VERSION}========'
+VERSION  = '2.4.7'
+s = f'========SEEWANG {VERSION}========'
 print(fr'''                                                                                                                  
-  CCCCCCCCCCCCCWWWWW       WWWWW    AAAAAA      NNNNN      NNNNN  GGGGGGGGGGGGG         2222222
- CCCCCCCCCCCCCCWWWWW WWWWW WWWWW    AAAAAA      NNNNNN     NNNNN GGGGGGGGGGGGGGG     2222222222222
-CCCCC          WWWWW WWWWW WWWWW   AAAAAAAA     NNNNNNN    NNNNNGGGGG        GGG   222222   2222222
-CCCCC          WWWWW WWWWW WWWWW   AAAAAAAA     NNNNNNNN   NNNNNGGGGG        GGG  22222      222222
-CCCCC          WWWWW WWWWW WWWWW  AAAAA AAAA    NNNNNNNNN  NNNNNGGGGG                        22222
-CCCCC          WWWWW WWWWW WWWWW  AAAAA AAAA    NNNNNNNNNN NNNNNGGGGG     GGGGG             22222
-CCCCC          WWWWW WWWWW WWWWW AAAAAA  AAAA   NNNNN NNNNNNNNNNGGGGG     GGGGGG           22222         
-CCCCC          WWWWW WWWWW WWWWW AAAAAA  AAAA   NNNNN  NNNNNNNNNGGGGG       GGGG         22222      
-CCCCC          WWWWW WWWWW WWWWWAAAAAA    AAAA  NNNNN   NNNNNNNNGGGGG       GGGG       2222      22
-CCCCC          WWWWWWWWWWWWWWWWWAAAAAA    AAAA  NNNNN    NNNNNNNGGGGGGGGGGGGGGGG     2222       222
- CCCCCCCCCCCCCCCWWWWWWW WWWWWWWAAAAAA      AAAA NNNNN     NNNNNN GGGGGGGGGGGGGG    2222       22222  
-  CCCCCCCCCCCCCC WWWWW   WWWWW AAAAAA      AAAA NNNNN      NNNNN  GGGGGGGGGGGG    222        222222 
+  CCCCCCCCCCCCWWWWW       WWWWW    AAAAAA     NNNNN      NNNNN  GGGGGGGGGGGGG             2222222
+ CCCCCCCCCCCCCWWWWW WWWWW WWWWW    AAAAAA     NNNNNN     NNNNN GGGGGGGGGGGGGGG         2222222222222
+CCCCC         WWWWW WWWWW WWWWW   AAAAAAAA    NNNNNNN    NNNNNGGGGG        GGG       222222   2222222
+CCCCC         WWWWW WWWWW WWWWW   AAAAAAAA    NNNNNNNN   NNNNNGGGGG        GGG      22222      222222
+CCCCC         WWWWW WWWWW WWWWW  AAAAA AAAA   NNNNNNNNN  NNNNNGGGGG                            22222
+CCCCC         WWWWW WWWWW WWWWW  AAAAA AAAA   NNNNNNNNNN NNNNNGGGGG     GGGGG                 22222
+CCCCC         WWWWW WWWWW WWWWW AAAAAA  AAAA  NNNNN NNNNNNNNNNGGGGG     GGGGGG               22222         
+CCCCC         WWWWW WWWWW WWWWW AAAAAA  AAAA  NNNNN  NNNNNNNNNGGGGG       GGGG             22222      
+CCCCC         WWWWW WWWWW WWWWWAAAAAA    AAAA NNNNN   NNNNNNNNGGGGG       GGGG           2222      22
+CCCCC         WWWWWWWWWWWWWWWWWAAAAAA    AAAA NNNNN    NNNNNNNGGGGGGGGGGGGGGGG         2222       222
+ CCCCCCCCCCCCCCWWWWWWW WWWWWWWAAAAAA      AAAANNNNN     NNNNNN GGGGGGGGGGGGGG        2222       22222  
+  CCCCCCCCCCCCCCWWWWW   WWWWW AAAAAA      AAAANNNNN      NNNNN  GGGGGGGGGGGG        222        222222 
 {s:^96}
   > AllayCloud 2025
   > By AllayCLoud-Studio: AllayFocalors
@@ -35,6 +35,7 @@ flag=1 #是否首次启动，如果是的话就不弹窗提示已经刷新
 main_font_size = 140
 next_obj = []
 win = tk.Tk()
+win.iconbitmap('Assets/img/icon.ico')
 obj_list = []#obj_list就是所有学生的名单，一人一个不重复
 chosen_obj = []#已经抽过的学生
 os.environ['FFMPEG_HWACCEL'] = 'auto'
@@ -42,6 +43,8 @@ chain_info = None #chain_info是存储chain信息的列表，防止和chain_conf
 style = ttk.Style()
 style.configure('ButtonStyle1.TButton',font=('MiSans VF regular',15),background='white')
 style.configure('ButtonStyle2.TButton',font=('MiSans VF regular',25),width=15)
+
+animations = {}
 
 CONFIG_FILE_PATH = os.path.abspath('config.txt')
 _icon_cache = {}
@@ -108,10 +111,8 @@ class VideoPlayTk:
         self.canvas.image = photo
 
 def write_log(res):
-    with open('res.txt',mode='a',encoding='utf-8') as file:
+    with open('log.txt',mode='a',encoding='utf-8') as file:
         file.write(time.asctime()+' -->-- '+res+'\n')
-
-
 
 def play_animation(filepath):
     animation1lasttime = json.load(open('dev_options.json'))['Animation1lasttime']
@@ -141,7 +142,7 @@ def show_about():
     abt.after(1000,load_images)
 
 win.geometry("1500x700+0+5")
-win.title('希王点名系统')
+win.title(f'希王点名{VERSION}')
 
 animation=0
 
@@ -223,7 +224,7 @@ def choose_one():
     global config,animation
     if animation:
         if animation == 1:
-            play_animation('Assets/vid/V1lower.mp4')
+            play_animation('Assets/vid/V1.mp4')
         elif animation == 2:
             play_animation('Assets/vid/V3.mp4')
     if len(chosen_obj) < stu_Quantity:
@@ -243,7 +244,7 @@ def choose_n():
     global stu_Quantity
     if animation:
         if animation == 1:
-            play_animation('Assets/vid/V2low.mp4')
+            play_animation('Assets/vid/V2.mp4')
         elif animation == 2:
             play_animation('Assets/vid/V3.mp4')
     if int(Ent_N.get())>=15:
@@ -267,7 +268,7 @@ def choose_three():
     global stu_Quantity
     if animation:
         if animation == 1:
-            play_animation('Assets/vid/V2low.mp4')
+            play_animation('Assets/vid/V2.mp4')
         elif animation == 2:
             play_animation('Assets/vid/V3.mp4')
     if len(chosen_obj) < stu_Quantity-2:
