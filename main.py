@@ -1,22 +1,24 @@
+VERSION  = '2.4.6'
+s = f'========CWANG {VERSION}========'
 print(fr'''                                                                                                                  
-  CCCCCCCCCCCC   WWWWW        WWW       AAAA             AAAAA     AAAAA   GGGGGGGGGGGG          22222222
- CCCCCCCCCCCCC   WWWWW  WWWW  WWW      AAAAAA           AAAAAA    AAAAA   GGGGGGGGGGGGGG      22222222222222
-CCCCC            WWWWW  WWWW  WWW      AAAAAA           AAAAAA    AAAAA  GGGGGG      GGGG   222222      22222
-CCCCC            WWWWW  WWWW  WWW     AAAAAAAA         AAAAAAA   AAAAA   GGGGG        GGG  22222         222
-CCCCC            WWWWW  WWWW  WWW     AAAAAAAA         AAAAAAA   AAAAA   GGGGG             222         2222
-CCCCC            WWWWW  WWWW  WWW    AAAAA  AAA       AAAAAAAAA AAAAA    GGGGG     GGGGG   22        22222
-CCCCC            WWWWW  WWWW  WWW    AAAAA  AAA       AAAAAAAAA AAAAA    GGGGG     GGGGGG  2       22222    2     
-CCCCC            WWWWW  WWWW  WWW   AAAAA    AAA     AAAAA AAAAAAAAA     GGGGG        GGG        222222    22
-CCCCC            WWWWWW WWWW WWWW   AAAAA    AAA     AAAAA AAAAAAAAA     GGGGGG      GGGG      2222222    222
-CCCCC            WWWWWWWWWWWWWWWW  AAAAA      AAA   AAAAA   AAAAAAA      GGGGGGGGGGGGGGGG    22222222    2222
- CCCCCCCCCCCCCCC  WWWWWWW  WWWWW   AAAAA      AAA   AAAAA   AAAAAAA       GGGGGGGGGGGGGG    22222222   222222   
-  CCCCCCCCCCCCCC   WWWWW    WWW   AAAAA        AAA AAAAA    AAAAAA         GGGGGGGGGGGG    22222222   2222222  
-{'----CWANG 2----':^50}
+  CCCCCCCCCCCCCWWWWW       WWWWW    AAAAAA      NNNNN      NNNNN  GGGGGGGGGGGGG         2222222
+ CCCCCCCCCCCCCCWWWWW WWWWW WWWWW    AAAAAA      NNNNNN     NNNNN GGGGGGGGGGGGGGG     2222222222222
+CCCCC          WWWWW WWWWW WWWWW   AAAAAAAA     NNNNNNN    NNNNNGGGGG        GGG   222222   2222222
+CCCCC          WWWWW WWWWW WWWWW   AAAAAAAA     NNNNNNNN   NNNNNGGGGG        GGG  22222      222222
+CCCCC          WWWWW WWWWW WWWWW  AAAAA AAAA    NNNNNNNNN  NNNNNGGGGG                        22222
+CCCCC          WWWWW WWWWW WWWWW  AAAAA AAAA    NNNNNNNNNN NNNNNGGGGG     GGGGG             22222
+CCCCC          WWWWW WWWWW WWWWW AAAAAA  AAAA   NNNNN NNNNNNNNNNGGGGG     GGGGGG           22222         
+CCCCC          WWWWW WWWWW WWWWW AAAAAA  AAAA   NNNNN  NNNNNNNNNGGGGG       GGGG         22222      
+CCCCC          WWWWW WWWWW WWWWWAAAAAA    AAAA  NNNNN   NNNNNNNNGGGGG       GGGG       2222      22
+CCCCC          WWWWWWWWWWWWWWWWWAAAAAA    AAAA  NNNNN    NNNNNNNGGGGGGGGGGGGGGGG     2222       222
+ CCCCCCCCCCCCCCCWWWWWWW WWWWWWWAAAAAA      AAAA NNNNN     NNNNNN GGGGGGGGGGGGGG    2222       22222  
+  CCCCCCCCCCCCCC WWWWW   WWWWW AAAAAA      AAAA NNNNN      NNNNN  GGGGGGGGGGGG    222        222222 
+{s:^96}
   > AllayCloud 2025
-  > By AllayFocalors
+  > By AllayCLoud-Studio: AllayFocalors
 ''')
 
-VERSION  = '2.2.5'
+
 
 import tkinter as tk
 import json
@@ -33,16 +35,15 @@ flag=1 #是否首次启动，如果是的话就不弹窗提示已经刷新
 main_font_size = 140
 next_obj = []
 win = tk.Tk()
-obj_list = []
-chosen_obj = []
+obj_list = []#obj_list就是所有学生的名单，一人一个不重复
+chosen_obj = []#已经抽过的学生
 os.environ['FFMPEG_HWACCEL'] = 'auto'
-chain_info = None
+chain_info = None #chain_info是存储chain信息的列表，防止和chain_config.txt混淆
 style = ttk.Style()
 style.configure('ButtonStyle1.TButton',font=('MiSans VF regular',15),background='white')
 style.configure('ButtonStyle2.TButton',font=('MiSans VF regular',25),width=15)
 
-# #chain_info是存储chain信息的列表，防止和chain_config.txt混淆
-
+CONFIG_FILE_PATH = os.path.abspath('config.txt')
 _icon_cache = {}
 
 def get_config():
@@ -159,7 +160,10 @@ def change_animation():
         But_AnimationOn.config(text='已禁用动画')
 
 def show_weight_set():
-    os.system(f'start notepad ./config.txt')
+    import ConfigGenerator as CG
+    # 调用 ConfigGenerator 中的 app 实例的 import_config 方法
+    CG.main(file_path=CONFIG_FILE_PATH,obj_quantity=len(obj_list))
+    # print(os.path.abspath('config.txt'))
 
 def show_chain_set():
     os.system(f'start notepad ./chain_config.txt')
@@ -193,7 +197,7 @@ def single_choose():
     global config
     if len(next_obj)==0:#nextobj列表中没人，说明没有触发连锁
         obj = wc.choose(config=config,chosen_obj=chosen_obj,chain_config=chain_info)
-        Tar = obj['Tar']
+        tar = obj['Tar']
         Next = obj['Next']
         # print(f'Tar={Tar},Next={Next},')
         while Next in chain_info:#说明这个obj有next，触发了连锁
@@ -207,9 +211,9 @@ def single_choose():
 
         Next = obj['Next']
     else:#next_obj中有人，说明触发了连锁，且下一个人是安排好的
-        Tar = next_obj.pop()
+        tar = next_obj.pop()
         Next = None
-    return Tar,Next 
+    return tar,Next
 
 def find_keys_by_value(d, value):
     keys = [k for k, v in d.items() if v == value]
@@ -297,14 +301,14 @@ class Small:
     def choose_one_small(self):
         global config,animation,Lab_Obj_s,Lab_chosen_obj_s
         if len(chosen_obj) < stu_Quantity:
-            Tar = wc.choose(config=config,chosen_obj=chosen_obj,chain_config=chain_info)['Tar']
+            tar = wc.choose(config=config,chosen_obj=chosen_obj,chain_config=chain_info)['Tar']
             # print(f'Tar={Tar},obj_list={obj_list}')
-            obj_list.remove(Tar)
-            chosen_obj.append(Tar)
-            Lab_Obj_s.config(text=str(Tar),foreground=MainTitle_color)
+            obj_list.remove(tar)
+            chosen_obj.append(tar)
+            Lab_Obj_s.config(text=str(tar),foreground=MainTitle_color)
             Lab_chosen_obj.config(text=str(f'已抽{len(chosen_obj)}个学生：\n{str(chosen_obj)}'))   
 
-            write_log(Tar)
+            write_log(tar)
         else:
             whether_reset = messagebox.askokcancel('人不够了',f'人不够了，是否重置？')
             if whether_reset:

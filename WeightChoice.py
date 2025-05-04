@@ -44,15 +44,43 @@ def get_chain():
         config = config.split('''\n''')
 
 def choose(config,chosen_obj,chain_config,dev_options=default_dev_options):
+
+    '''
+    组权重配置规则
+    格式：
+    ##,权重,组名
+    即当人名为##时，这一条配置规则为小组配置
+    此时权重为对应组名的权重
+    算法：
+    先遍历配置规则获取每个组对应的权重，存储起来
+    接着在抽签筒处理个人权重时顺带看看这个人所属的组有没有特别配置过权重
+    有的话就再乘以其权重
+        '''
+
+    group_weight = {}
+
+    for i in config:
+        ii = i.split(',')
+        if ii[0] == '##':
+            group_weight[ii[2]] = int(ii[1])
+
     #ready抽签筒配置
     ready = []
     for i in config:
-        if i.split(',')[0] in chosen_obj:
-            continue
+        ii = i.split(',') #ii为i分割后的列表，格式为名字,权重,组名
+        if ii[0] != '##':#我们使用##作为组配置标识符
+            if ii[0] in chosen_obj:
+                continue
+            else:
+                if ii[2] in group_weight:
+                    for j in range(int(ii[1])*group_weight[ii[2]]):
+                        ready.append(i.split(',')[0])
+                else:
+                    for j in range(int(ii[1])):
+                        ready.append(i.split(',')[0])
         else:
-            for j in range(int(i.split(',')[1])):
-                ready.append(i.split(',')[0])
-
+            continue#如果这一条是组配置，跳过不管，因为这里正在处理的是个人配置
+    print(ready)#配置好了检查一下
     #chain连锁配置
     if dev_options['manual_operate'] != False:
         rNum=dev_options['manual_operate']
