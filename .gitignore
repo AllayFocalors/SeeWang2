@@ -1,8 +1,15 @@
 /Packaged/
-/双击运行.bat
 /res.txt
 /.idea/
 /__pycache__/
 /_internal/
 *.pyc
 !*.png
+/log.txt
+config-o.txt
+/config.txt
+/chain_config.txt
+/add_text.jpg
+*.spec
+/build
+/dist

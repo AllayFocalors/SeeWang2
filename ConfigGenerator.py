@@ -21,7 +21,7 @@ class Application(tk.Tk):
     def __init__(self,obj_quantity=46):
         super().__init__()
         self.title("配置生成器")
-        self.geometry("800x600")
+        self.geometry("560x700")
         self.current_obj_n = 0  # 保存当前输入的人数
         self.create_widgets(obj_quantity=obj_quantity)
 
@@ -37,7 +37,7 @@ class Application(tk.Tk):
         self.relayout_btn = ttk.Button(input_frame, text="重新布局", command=self.relayout)
         self.relayout_btn.pack(side=tk.LEFT, padx=5)
 
-        self.generate_btn = ttk.Button(input_frame, text="生成配置文件", command=self.generate_config)
+        self.generate_btn = ttk.Button(input_frame, text="生成/覆盖配置文件", command=self.generate_config)
         self.generate_btn.pack(side=tk.LEFT, padx=5)
 
         self.import_btn = ttk.Button(input_frame, text="导入配置", command=self.import_config)
@@ -51,14 +51,15 @@ class Application(tk.Tk):
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-    def relayout(self):
-        try:
-            obj_n = int(self.obj_n_entry.get())
-            if obj_n <= 0:
-                raise ValueError
-        except:
-            messagebox.showerror("错误", "请输入有效的正整数人数。")
-            return
+    def relayout(self,obj_n=46):
+        if obj_n==46:
+            try:
+                obj_n = int(self.obj_n_entry.get())
+                if obj_n <= 0:
+                    raise ValueError
+            except:
+                messagebox.showerror("错误", "请输入有效的正整数人数。")
+                return
 
         self.current_obj_n = obj_n
         n, m = calculate_dimensions(obj_n)
@@ -104,6 +105,8 @@ class Application(tk.Tk):
                 name = cell[0].get().strip()
                 weight = cell[1].get().strip()
                 group = cell[2].get().strip()
+                if not name or not weight or not group:#如果遇到空内容就跳过，不用弹窗反馈
+                    continue
                 config_data.append(f"{name},{weight},{group}")
                 count += 1
             if count >= self.current_obj_n:
@@ -157,8 +160,9 @@ class Application(tk.Tk):
             return
 
         if len(data) != self.current_obj_n:
-            messagebox.showerror("错误", f"文件行数（{len(data)}）与当前设置人数（{self.current_obj_n}）不一致。")
-            return
+            # messagebox.showinfo("提示", f"文件行数（{len(data)}）与当前设置人数（{self.current_obj_n}）不一致。")
+            self.relayout(obj_n=len(data))
+
 
         # 检查表格是否存在
         if not hasattr(self, 'cells') or not self.cells:

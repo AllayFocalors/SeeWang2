@@ -1,4 +1,4 @@
-VERSION  = '2.4.7'
+VERSION  = '2.4.8'
 s = f'========SEEWANG {VERSION}========'
 print(fr'''                                                                                                                  
   CCCCCCCCCCCCWWWWW       WWWWW    AAAAAA     NNNNN      NNNNN  GGGGGGGGGGGGG             2222222
@@ -110,9 +110,15 @@ class VideoPlayTk:
         self.canvas.create_image(0, 0, image=photo, anchor=tk.NW)
         self.canvas.image = photo
 
-def write_log(res):
-    with open('log.txt',mode='a',encoding='utf-8') as file:
+def write_res(res):
+    with open('res.txt',mode='a',encoding='utf-8') as file:
         file.write(time.asctime()+' -->-- '+res+'\n')
+    with open('log.txt',mode='a',encoding='utf-8') as file:
+        file.write(time.asctime()+' : SingleChoose : '+res+'\n')
+
+def write_log(info):
+    with open('log.txt',mode='a',encoding='utf-8') as file:
+        file.write(info+'\n')
 
 def play_animation(filepath):
     animation1lasttime = json.load(open('dev_options.json'))['Animation1lasttime']
@@ -186,10 +192,15 @@ But_refresh_weight = ttk.Button(win,text="刷新",style='ButtonStyle1.TButton',c
 def reset():
     '''obj_list就是所有学生的名单，一人一个不重复'''
     global obj_list,chosen_obj,config,stu_Quantity,Lab_chosen_obj
+    p = []#这个用来在遍历时存储抽过的学生，以防config里面重名bug
     obj_list = []
     chosen_obj = []
     for i in config:
-        obj_list.append(i.split(',')[0])
+        stu = i.split(',')[0]
+        if stu in p:
+            continue
+        obj_list.append(stu)
+        p.append(stu)
     stu_Quantity = len(obj_list)
     Lab_Obj.config(text="找抽",wraplength=int(win.winfo_width()))
 
@@ -197,24 +208,36 @@ def single_choose():
     '''由于choose_one,choose_three,choose_n的逻辑过于臃肿，所以打算都调用这个single_choose函数'''
     global config
     if len(next_obj)==0:#nextobj列表中没人，说明没有触发连锁
-        obj = wc.choose(config=config,chosen_obj=chosen_obj,chain_config=chain_info)
+        try:
+            obj = wc.choose(config=config, chosen_obj=chosen_obj, chain_config=chain_info)
+        except Exception as e:
+            write_log(info=f'选择对象时发生错误: {e}')
+            messagebox.showerror('异常', f'{e}')
+            return
+        if 'error' in obj:
+            messagebox.showerror('错误', obj['error'])
+            return
         tar = obj['Tar']
         Next = obj['Next']
-        # print(f'Tar={Tar},Next={Next},')
-        while Next in chain_info:#说明这个obj有next，触发了连锁
-            if not Next in chosen_obj:#说明这个东西连锁的next也没抽过
-                next_obj.insert(0,Next)
+        print(f'传回Tar={tar},Next={Next},')
+        while Next in chain_info:  # 说明这个obj有next，触发了连锁
+            if not Next in chosen_obj:  # 说明这个东西连锁的next也没抽过
+                next_obj.insert(0, Next)
+                #
                 # print(f'Next={Next},next_obj={next_obj}')
-            Next=chain_info[Next]#获取next的next
-        if (not Next in chosen_obj) and Next != None:#循环完成后再来一遍，因为尾巴上的人是不作为字典的key的，所以要再判断一遍。如果删了这个语句的话，最后尾巴上的人会被忽略。
-            next_obj.insert(0,Next)
+            Next = chain_info[Next]  # 获取next的next
+            if Next in next_obj:  # 说明是##both模式，所以要再判断一遍，不然死循环
+                break
+        if (not Next in chosen_obj) and Next is not None:  # 循环完成后再来一遍，因为尾巴上的人是不作为字典的key的，所以要再判断一遍。如果删了这个语句的话，最后尾巴上的人会被忽略。
+            next_obj.insert(0, Next)
             # print(f'Next={Next},next_obj={next_obj}')
 
         Next = obj['Next']
-    else:#next_obj中有人，说明触发了连锁，且下一个人是安排好的
+    else:  # next_obj中有人，说明触发了连锁，且下一个人是安排好的
         tar = next_obj.pop()
         Next = None
-    return tar,Next
+    write_log(info=f'选择对象: {tar}, 下一个对象: {Next}, 连锁列表: {next_obj}')
+    return {'Tar': tar, 'Next': Next}
 
 def find_keys_by_value(d, value):
     keys = [k for k, v in d.items() if v == value]
@@ -228,13 +251,15 @@ def choose_one():
         elif animation == 2:
             play_animation('Assets/vid/V3.mp4')
     if len(chosen_obj) < stu_Quantity:
-        Tar,Next = single_choose()
-        print(f'Tar={Tar},next={Next},next_obj={next_obj}')
+        a = single_choose()
+        Tar = a['Tar']
+        Next = a['Next']
+        print(f'choose_one:Tar={Tar},next={Next},next_obj={next_obj}')
         obj_list.remove(Tar)
         chosen_obj.append(Tar)
         Lab_Obj.config(text=str(Tar),foreground=MainTitle_color)
         Lab_chosen_obj.config(text=str(f'已抽{len(chosen_obj)}个学生：\n{str(' '.join(chosen_obj))}'))   
-        write_log(Tar)
+        write_res(Tar)
     else:
         whether_reset = messagebox.askokcancel('人不够了',f'人不够了，是否重置？')
         if whether_reset:
@@ -253,14 +278,16 @@ def choose_n():
         if len(chosen_obj) < stu_Quantity-int(Ent_N.get())+1:
             res=''
             for i in range(int(Ent_N.get())):
-                Tar,Next = single_choose()
+                a = single_choose()
+                Tar = a['Tar']
+                Next = a['Next']
                 print(f'Tar={Tar},next={Next},next_obj={next_obj}')
                 obj_list.remove(Tar)
                 chosen_obj.append(Tar)
                 res+=str(Tar)+' '
             Lab_Obj.config(text=str(res),foreground=MainTitle_color)
             Lab_chosen_obj.config(text=str(f'已抽{len(chosen_obj)}个学生：\n{str(' '.join(chosen_obj))}'))   
-            write_log(res)
+            write_res(res)
         else:
             messagebox.showwarning('人不够了',f'抽不了这么多')
 
@@ -274,26 +301,21 @@ def choose_three():
     if len(chosen_obj) < stu_Quantity-2:
         res=''
         for i in range(3):
-            Tar,Next = single_choose()
+            a = single_choose()
+            Tar = a['Tar']
+            Next = a['Next']
             print(f'Tar={Tar},next={Next},next_obj={next_obj}')
             obj_list.remove(Tar)
             chosen_obj.append(Tar)
             res+=str(Tar)+' '
         Lab_Obj.config(text=str(res),foreground=MainTitle_color)
         Lab_chosen_obj.config(text=str(f'已抽{len(chosen_obj)}个学生：\n{str(' '.join(chosen_obj))}'))   
-        write_log(res)
+        write_res(res)
     else:
         messagebox.showwarning('人不够了',f'抽不了这么多')
 pad=40
 
-def update_Lab_Obj_wraplength(event):
-    global pad
-    Lab_Obj.config(wraplength=win.winfo_width(),font=("MiSans VF",int(win.winfo_width()/14)))
-    right_side_first_y = 220
-    But_About.place(x=win.winfo_width()-300,y=right_side_first_y)
-    But_small_mode.place(x=win.winfo_width()-300,y=right_side_first_y+pad)
-    But_generate_report.place(x=win.winfo_width()-300,y=right_side_first_y+pad*2)
-    But_DevelopOptions.place(x=win.winfo_width()-300,y=right_side_first_y+pad*3)
+
 
 def small_mode():
     Small()
@@ -309,7 +331,7 @@ class Small:
             Lab_Obj_s.config(text=str(tar),foreground=MainTitle_color)
             Lab_chosen_obj.config(text=str(f'已抽{len(chosen_obj)}个学生：\n{str(chosen_obj)}'))   
 
-            write_log(tar)
+            write_res(tar)
         else:
             whether_reset = messagebox.askokcancel('人不够了',f'人不够了，是否重置？')
             if whether_reset:
@@ -343,6 +365,7 @@ def check_chain_settings():
 
 def generate_report():
     RG.generate_report()
+    messagebox.showinfo('通知','周报生成完成')
 
 def show_dev_opt():
     def save_dev_opt():
@@ -367,7 +390,6 @@ def show_dev_opt():
     ttk.Button(dev_options,text='保存',command=save_dev_opt).pack()
 
 
-win.bind('<Configure>', update_Lab_Obj_wraplength)
 
 But_ChooseOne = ttk.Button(win,text="单抽",style='ButtonStyle2.TButton',command=choose_one)
 But_choose_three = ttk.Button(win,text="三抽",style='ButtonStyle2.TButton',command=choose_three)
@@ -387,8 +409,8 @@ But_CheckChain = ttk.Button(win,text="刷新",style='ButtonStyle1.TButton',comma
 But_AnimationOn = ttk.Button(win,text="已禁用动画",style='ButtonStyle1.TButton',command=change_animation)
 But_About = ttk.Button(win,text=f"SeeWang v{VERSION}",style='ButtonStyle1.TButton',command=show_about)
 But_small_mode = ttk.Button(win,text="小窗模式",style='ButtonStyle1.TButton',command=small_mode,image=load_icon('Assets/img/小窗.png'),compound='left')
-But_generate_report= ttk.Button(win,text="生成周报",style='ButtonStyle1.TButton',command=generate_report)
-But_DevelopOptions = ttk.Button(win,text="开发者选项",style='ButtonStyle1.TButton',command=show_dev_opt)
+But_generate_report= ttk.Button(win,text="生成周报",style='ButtonStyle1.TButton',command=generate_report,image=load_icon('Assets/img/周报.png'),compound='left')
+But_DevelopOptions = ttk.Button(win,text="高级选项",style='ButtonStyle1.TButton',command=show_dev_opt,image=load_icon('Assets/img/开发.png'),compound='left')
 
 left_side_first_y = 220
 Lab_Obj.pack()
@@ -403,9 +425,17 @@ But_refresh_weight.place(x=300,y=left_side_first_y+pad*2)
 But_EditChain.place(x=100,y=left_side_first_y+pad*3)
 But_CheckChain.place(x=300,y=left_side_first_y+pad*3)
 But_AnimationOn.place(x=100,y=left_side_first_y+pad*4)
-
 Lab_chosen_obj.pack()
 
 Lab_chosen_obj.config(text=str(f'希王点名2\n界面布局更新'))
+def update_Lab_Obj_wraplength(event):
+    global pad
+    Lab_Obj.config(wraplength=win.winfo_width(),font=("MiSans VF",int(win.winfo_width()/14)))
+    right_side_first_y = 220
+    But_About.place(x=win.winfo_width()-300,y=right_side_first_y)
+    But_small_mode.place(x=win.winfo_width()-300,y=right_side_first_y+pad)
+    But_generate_report.place(x=win.winfo_width()-300,y=right_side_first_y+pad*2)
+    But_DevelopOptions.place(x=win.winfo_width()-300,y=right_side_first_y+pad*3)
+win.bind('<Configure>', update_Lab_Obj_wraplength)
 update_Lab_Obj_wraplength(None)
 win.mainloop()

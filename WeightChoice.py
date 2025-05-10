@@ -16,15 +16,21 @@ def load_chain_config(file_path):
                 line = line.strip()
                 if '##' in line:
                     names=line.split(',')[:-1]
-                    if '##sin' in line:
+                    if '##head' in line:#单向，抽到头才会往后连锁
                         chain_config[names[0]] = names[1:]
-                    elif '##bot' in line:
+                    elif '##body' in line:#单向，抽到身体任意一个都会往后找
                         for i in range(len(names)-1):
                             chain_config[names[i]] = names[i+1]
+                    # elif '##both' in line:#双向，仅限俩人，抽到这个轮到另一个
+                    #     for i in range(len(names)-1):
+                    #         chain_config[names[i]] = names[i+1]
+                    #         chain_config[names[i+1]] = names[i]
                     else:
-                        return {'error':'config error'}
+                        return {'error':'chain config error'}
                 else:
                     continue
+
+        print(f'{chain_config=}')
         return chain_config
     except Exception as e:
         return {'error':str(e)}
@@ -43,10 +49,14 @@ def get_chain():
         config = f.read()
         config = config.split('''\n''')
 
-def choose(config,chosen_obj,chain_config,dev_options=default_dev_options):
+def choose(config, chosen_obj, chain_config, dev_options=default_dev_options):
+    if not config or not isinstance(config, list):
+        return {'error': 'Invalid config'}
+    # if not chain_config or not isinstance(chain_config, dict):连锁可有可无
+    #     return {'error': 'Invalid chain_config'}
 
-    '''
-    组权重配置规则
+    '''抽人策略：先刷一遍config看看有没有重名，没有的话再进行以下，有的话直接剔除'''
+    '''组权重配置规则
     格式：
     ##,权重,组名
     即当人名为##时，这一条配置规则为小组配置
@@ -64,46 +74,50 @@ def choose(config,chosen_obj,chain_config,dev_options=default_dev_options):
         if ii[0] == '##':
             group_weight[ii[2]] = int(ii[1])
 
-    #ready抽签筒配置
+    # ready抽签筒配置
     ready = []
     for i in config:
-        ii = i.split(',') #ii为i分割后的列表，格式为名字,权重,组名
-        if ii[0] != '##':#我们使用##作为组配置标识符
+        ii = i.split(',')  # ii为i分割后的列表，格式为名字,权重,组名
+        if ii[0] != '##':  # 我们使用##作为组配置标识符
             if ii[0] in chosen_obj:
                 continue
             else:
                 if ii[2] in group_weight:
-                    for j in range(int(ii[1])*group_weight[ii[2]]):
+                    for j in range(int(ii[1]) * group_weight[ii[2]]):
                         ready.append(i.split(',')[0])
                 else:
                     for j in range(int(ii[1])):
                         ready.append(i.split(',')[0])
         else:
-            continue#如果这一条是组配置，跳过不管，因为这里正在处理的是个人配置
-    print(ready)#配置好了检查一下
-    #chain连锁配置
+            continue  # 如果这一条是组配置，跳过不管，因为这里正在处理的是个人配置
+    print(ready)  # 配置好了检查一下
+
+    # chain连锁配置
     if dev_options['manual_operate'] != False:
-        rNum=dev_options['manual_operate']
+        rNum = dev_options['manual_operate']
     else:
-        if len(ready)>1:
-            rNum = r.randint(0,len(ready)-1)
+        if len(ready) > 1:
+            rNum = r.randint(0, len(ready) - 1)
         else:
             rNum = 0
+    print(f'{len(ready)=},{rNum=},{ready[rNum]=}')
+
     '''连锁格式：
     名字1,名字2,名字3, ... ,名字N,##(sin|bot)
     (sin|bot)： sin表示单向连锁，即只有抽到了名字1才会按顺序抽下去
     bot表示双向连锁，即抽到了这些名字中任意一个都会按照顺序抽下去
     '''
     # print(load_chain_config('./chain_config.txt'))
-    if ready[rNum] in chain_config:
+    if rNum > 0 and ready[rNum] in chain_config:
         next = chain_config[ready[rNum]]
-        if isinstance(next,list):
-            next=next[0]
+        if isinstance(next, list):
+            next = next[0]
     else:
         next = None
-    # print('next=',next)
+    # print('next=', next)
     # print(chain_config)
-    return {'Tar':ready[rNum],'Next':next}
+    print(f'{ready[rNum]=},{next=}')
+    return {'Tar': ready[rNum], 'Next': next}
 
 if __name__ == '__main__':
     config = get_config()
