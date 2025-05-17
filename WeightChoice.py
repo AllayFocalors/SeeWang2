@@ -14,7 +14,7 @@ def load_chain_config(file_path):
         with open(file_path, "r", encoding="utf-8") as file:
             for line in file:
                 line = line.strip()
-                if '##' in line:
+                if '##' in line and '//' not in line:
                     names=line.split(',')[:-1]
                     if '##head' in line:#单向，抽到头才会往后连锁
                         chain_config[names[0]] = names[1:]
@@ -30,7 +30,7 @@ def load_chain_config(file_path):
                 else:
                     continue
 
-        print(f'{chain_config=}')
+        # print(f'{chain_config=}')
         return chain_config
     except Exception as e:
         return {'error':str(e)}
@@ -90,7 +90,7 @@ def choose(config, chosen_obj, chain_config, dev_options=default_dev_options):
                         ready.append(i.split(',')[0])
         else:
             continue  # 如果这一条是组配置，跳过不管，因为这里正在处理的是个人配置
-    print(ready)  # 配置好了检查一下
+    # print(ready)  # 配置好了检查一下
 
     # chain连锁配置
     if dev_options['manual_operate'] != False:
@@ -100,7 +100,7 @@ def choose(config, chosen_obj, chain_config, dev_options=default_dev_options):
             rNum = r.randint(0, len(ready) - 1)
         else:
             rNum = 0
-    print(f'{len(ready)=},{rNum=},{ready[rNum]=}')
+    # print(f'{len(ready)=},{rNum=},{ready[rNum]=}')
 
     '''连锁格式：
     名字1,名字2,名字3, ... ,名字N,##(sin|bot)
@@ -116,7 +116,7 @@ def choose(config, chosen_obj, chain_config, dev_options=default_dev_options):
         next = None
     # print('next=', next)
     # print(chain_config)
-    print(f'{ready[rNum]=},{next=}')
+    # print(f'{ready[rNum]=},{next=}')
     return {'Tar': ready[rNum], 'Next': next}
 
 if __name__ == '__main__':
